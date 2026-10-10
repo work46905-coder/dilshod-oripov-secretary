@@ -13,56 +13,114 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
+chat_history = {}
+
+SYSTEM_PROMPT = """
+Siz Doktor Dilshod Oripovning Telegramdagi shaxsiy yozishmalariga
+yordam beruvchi virtual yordamchisiz.
+
+Foydalanuvchilar bilan o'zbek tilida, muloyim va professional
+uslubda suhbatlashing.
+
+Vazifalaringiz:
+- Bemorlarning savollarini tushunish.
+- Sog'liq bilan bog'liq savollarga umumiy ma'lumot berish.
+- Kerak bo'lsa, bemordan qo'shimcha ma'lumot so'rash.
+- Zarur hollarda shifokor ko'rigini tavsiya qilish.
+
+Aniq tashxis qo'ymang.
+Shifokor ko'rigisiz dori yoki davolash kursini buyurmang.
+Shoshilinch xavf belgilarida tez tibbiy yordamga murojaat qilishni ayting.
+
+O'zingizni Doktor Dilshod Oripovning o'zi deb ko'rsatmang.
+So'ralsa, virtual yordamchi ekaningizni tushuntiring.
+
+Javoblaringiz qisqa, aniq va tushunarli bo'lsin.
+"""
+
 
 @app.get("/")
 def home():
     return {
         "status": "ok",
-        "service": "Dilshod Oripov"
+        "service": "Dilshod Oripov Telegram AI"
     }
 
-SYSTEM_PROMPT = """
-Siz Dilshod Oripovning shaxsiy onlayn sekretarisiz.
 
-Suhbat davomida o'zingizni bot, AI, sun'iy intellekt yoki dastur deb tanishtirmang.
-Foydalanuvchiga tabiiy, muloyim va professional tarzda javob bering.
+def telegram_api(method, payload):
+    url = (
+        f"https://api.telegram.org/"
+        f"bot{TELEGRAM_BOT_TOKEN}/{method}"
+    )
 
-Sizning vazifangiz:
-- bemorning murojaatini tushunish;
-- kerakli ma'lumotlarni aniqlashtirish;
-- qisqa va tushunarli javob berish;
-- zarur bo'lsa, Dilshod Oripov bilan bog'lanish yoki konsultatsiya bo'yicha yo'naltirish.
+    data = json.dumps(payload).encode("utf-8")
 
-Tibbiy tashxisni o'zingiz mustaqil ravishda aniq qo'ymang.
-"""
-
-chat_history = {}
-def send_telegram_message(chat_id, text):
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-
-    data = urllib.parse.urlencode({
-        "chat_id": chat_id,
-        "text": text
-    }).encode()
-
-    request = urllib.request.Request(url, data=data)
+    request = urllib.request.Request(
+        url,
+        data=data,
+        headers={"Content-Type": "application/json"},
+        method="POST"
+    )
 
     with urllib.request.urlopen(request, timeout=20) as response:
-        return json.loads(response.read().decode("utf-8"))
+        result = json.loads(response.read().decode("utf-8"))
+
+    if not result.get("ok"):
+        raise RuntimeError(str(result))
+
+    return result
+
+
+def send_business_message(chat_id, connection_id, text):
+    for start in range(0, len(text), 4000):
+        telegram_api(
+            "sendMessage",
+            {
+                "business_connection_id": connection_id,
+                "chat_id": chat_id,
+                "text": text[start:start + 4000]
+            }
+        )
+
+
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
     data = await request.json()
 
-    message = data.get("message", {})
-    chat = message.get("chat", {})
-    chat_id = chat.get("id")
-    user_text = message.get("text")
-
-    if not chat_id or not user_text:
+    if "business_connection" in data:
+        print("BUSINESS CONNECTION RECEIVED", flush=True)
         return {"ok": True}
 
+    message = data.get("business_message")
+
+    if not message:
+        return {"ok": True}
+
+    chat = message.get("chat", {})
+    sender = message.get("from", {})
+
+    chat_id = chat.get("id")
+    connection_id = message.get("business_connection_id")
+    user_text = message.get("text")
+
+    # Faqat mijozlarning shaxsiy xabarlarini qabul qilish
+    if chat.get("type") != "private":
+        return {"ok": True}
+
+    # Botlarning xabarlariga javob bermaslik
+    if sender.get("is_bot"):
+        return {"ok": True}
+
+    # Faqat matnli xabarlar
+    if not chat_id or not connection_id or not user_text:
+        return {"ok": True}
+
+    print("BUSINESS MESSAGE RECEIVED:", chat_id, flush=True)
+
     try:
-        history = chat_history.get(chat_id, [])
+        history_key = f"{connection_id}:{chat_id}"
+
+        history = chat_history.get(history_key, [])
 
         history.append({
             "role": "user",
@@ -72,42 +130,53 @@ async def telegram_webhook(request: Request):
         history = history[-10:]
 
         response = client.responses.create(
-            model="gpt-5.4-mini",
+            model="gpt-4.1-mini",
             instructions=SYSTEM_PROMPT,
             input=history
         )
 
         answer = response.output_text
 
+        if not answer:
+            answer = (
+                "Savolingizni tushunishda qiyinchilik bo'ldi. "
+                "Iltimos, qayta yozing."
+            )
+
         history.append({
             "role": "assistant",
             "content": answer
         })
 
-        chat_history[chat_id] = history[-10:]
+        chat_history[history_key] = history[-10:]
 
-        send_telegram_message(chat_id, answer)
+        send_business_message(
+            chat_id,
+            connection_id,
+            answer
+        )
+
+        print("BUSINESS MESSAGE SENT:", chat_id, flush=True)
 
     except Exception as e:
-        print("ERROR:", str(e))
-
-        send_telegram_message(
-            chat_id,
-            "Kechirasiz, hozir texnik xatolik yuz berdi. Iltimos, birozdan keyin qayta yozing."
-        )
+        print("ERROR:", str(e), flush=True)
 
     return {"ok": True}
 
 
 @app.get("/set-webhook")
 def set_webhook():
-    webhook_url = "https://dilshod-oripov-secretary.onrender.com/webhook"
-
-    url = (
-        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
-        f"?url={urllib.parse.quote(webhook_url, safe=':/')}"
+    webhook_url = (
+        "https://dilshod-oripov-secretary.onrender.com/webhook"
     )
 
-    with urllib.request.urlopen(url, timeout=20) as response:
-        return json.loads(response.read().decode("utf-8"))
-        
+    return telegram_api(
+        "setWebhook",
+        {
+            "url": webhook_url,
+            "allowed_updates": [
+                "business_connection",
+                "business_message"
+            ]
+        }
+    )
