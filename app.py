@@ -360,9 +360,12 @@ async def telegram_webhook(request: Request):
             "геолокация", "где находится"
         ]
 
+       
         if any(word in user_text.lower() for word in location_words):
             send_business_location(chat_id, connection_id)
             send_business_photo(chat_id, connection_id)
+            return {"ok": True}
+
 
         send_business_message(
             chat_id,
