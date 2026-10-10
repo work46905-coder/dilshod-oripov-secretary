@@ -96,9 +96,9 @@ async def telegram_webhook(request: Request):
         )
 
     return {"ok": True}
-    @app.get("/set-webhook")
-def set_webhook():
-    webhook_url = "https://dilshod-oripov-secretary.onrender.com/webhook"
+     @app.get("/set-webhook")
+     def set_webhook():
+       webhook_url = "https://dilshod-oripov-secretary.onrender.com/webhook"
 
     url = (
         f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
