@@ -249,7 +249,8 @@ def send_business_message(chat_id, connection_id, text):
                 "business_connection_id": connection_id,
                 "chat_id": chat_id,
                 "text": text[start:start + 4000],
-                "parse_mode": "HTML"
+                "parse_mode": "HTML",
+                "link_preview_options": {"is_disabled": False}
             }
         )
 
