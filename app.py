@@ -49,7 +49,7 @@ def send_telegram_message(chat_id, text):
 
     with urllib.request.urlopen(request, timeout=20) as response:
         return json.loads(response.read().decode("utf-8"))
-@app.post("/webhook")
+        @app.post("/webhook")
 async def telegram_webhook(request: Request):
     data = await request.json()
 
@@ -90,15 +90,18 @@ async def telegram_webhook(request: Request):
 
     except Exception as e:
         print("ERROR:", str(e))
+
         send_telegram_message(
             chat_id,
             "Kechirasiz, hozir texnik xatolik yuz berdi. Iltimos, birozdan keyin qayta yozing."
         )
 
     return {"ok": True}
-     @app.get("/set-webhook")
-     def set_webhook():
-       webhook_url = "https://dilshod-oripov-secretary.onrender.com/webhook"
+
+
+@app.get("/set-webhook")
+def set_webhook():
+    webhook_url = "https://dilshod-oripov-secretary.onrender.com/webhook"
 
     url = (
         f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
@@ -107,3 +110,4 @@ async def telegram_webhook(request: Request):
 
     with urllib.request.urlopen(url, timeout=20) as response:
         return json.loads(response.read().decode("utf-8"))
+        
