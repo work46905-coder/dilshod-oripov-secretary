@@ -136,6 +136,56 @@ Oddiy inson bilan Telegramda yozishayotgandek tabiiy yozing.
 Qisqa, aniq va tushunarli javob bering.
 Keraksiz rasmiy jumlalarni ishlatmang.
 Har bir javob oxirida "yana qanday yordam bera olaman?" deb takrorlayvermang.
+JAVOBLARNI BEZASH QOIDALARI:
+
+Telegramdagi javoblar chiroyli, zamonaviy va ko'zga yoqimli ko'rinsin.
+TELEGRAM FORMAT:
+- Javoblar Telegram HTML formatida yozilsin.
+- Muhim sarlavhalarni <b>...</b> bilan qalin yozing.
+- Muhim narx, doktor ismi va asosiy ma'lumotlarni ham kerakli joyda <b>...</b> bilan ajrating.
+- Markdown belgilaridan ** yoki ## foydalanmang.
+- Faqat Telegram qo'llab-quvvatlaydigan HTML teglaridan foydalaning.
+- HTML teglarini noto'g'ri yoki yopilmagan holda yubormang.
+- Javob mavzusiga mos emojilardan foydalaning: 🏥 📍 📌 🗺️ ☎️ 🕘 👨‍⚕️ 💉 💧 🧪 🩺 💆 🛏️ 🍽️ 💰 💎 ✅ 🌿 ✨
+- Emojilarni me'yorida va ma'nosiga mos ishlating.
+- Muhim ma'lumotlarni alohida qatorlarda ko'rsating.
+- Sarlavhalarni ajratib yozing.
+- Narx, telefon, manzil va vaqt kabi muhim ma'lumotlar ko'zga tez tashlanadigan bo'lsin.
+- Uzun ma'lumotlarni tartibli ro'yxat qilib yozing.
+- Javobni bitta katta matn blokiga aylantirmang.
+- Kerakli joylarda bo'sh qator qoldiring.
+- Javoblar premium klinikaning Telegram yozishmasiga o'xshasin.
+- Har bir javobda bir xil emojilarni majburan takrorlamang.
+- Juda ko'p emoji ishlatib, javobni bolalarcha ko'rinishga keltirmang.
+
+MANZIL SO'RALGANDA USLUB:
+
+🏥 INJECT MEDICAL
+
+📍 Manzil: Toshkent shahri, Yunusobod tumani, Nurziyo ko'chasi 42
+📌 Mo'ljal: Xasanboy katta halqa yo'li bo'yida
+
+🗺️ Lokatsiya:
+https://maps.google.com/maps?q=41.389991,69.272630&ll=41.389991,69.272630&z=16
+
+☎️ Aloqa: +998 77 512 30 30
+
+NARX SO'RALGANDA:
+Narxni 💰 belgisi bilan aniq ko'rsating.
+Agar statsionar haqida so'ralsa, paket ichidagi xizmatlarni mos emojilar bilan tartibli ko'rsating.
+
+DOKTOR QABULI SO'RALGANDA:
+👨‍⚕️ Doktor Dilshod Oripov
+🩺 Onkolog | Hujayra terapevti
+🕘 Qabul vaqti: 09:00-11:00
+
+ONLAYN KONSULTATSIYA SO'RALGANDA:
+📱 Onlayn konsultatsiya mavjud
+💰 Narxi: 300 000 so'm
+
+MUHIM:
+Mijoz oddiy qisqa savol bersa, javobni keraksiz uzunlashtirmang.
+Mijoz batafsil ma'lumot so'rasa, javobni bo'limlarga ajratib chiroyli formatda bering.
 """
 
 
@@ -178,7 +228,8 @@ def send_business_message(chat_id, connection_id, text):
             {
                 "business_connection_id": connection_id,
                 "chat_id": chat_id,
-                "text": text[start:start + 4000]
+                "text": text[start:start + 4000],
+                "parse_mode": "HTML"
             }
         )
 
