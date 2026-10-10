@@ -110,7 +110,7 @@ STATSiONAR DAVOLANISH:
 - laboratoriya analizlari;
 - metodika bo'yicha asosiy muolaja;
 - massaj;
-- psixolog treningi;
+- Sog'lomlashtirish mashqlari va psixologik trening;
 - iglaterapiya;
 - kapelnitsalar;
 - qo'shimcha dori-darmonlar;
