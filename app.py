@@ -255,6 +255,35 @@ def send_business_message(chat_id, connection_id, text):
         )
 
 
+def send_business_location(chat_id, connection_id):
+    telegram_api(
+        "sendLocation",
+        {
+            "business_connection_id": connection_id,
+            "chat_id": chat_id,
+            "latitude": 41.389991,
+            "longitude": 69.272630,
+        }
+    )
+
+
+def send_business_photo(chat_id, connection_id):
+    telegram_api(
+        "sendPhoto",
+        {
+            "business_connection_id": connection_id,
+            "chat_id": chat_id,
+            "photo": "https://raw.githubusercontent.com/work46905-coder/dilshod-oripov-secretary/main/2025-09-04.webp",
+            "caption": (
+                "🏥 INJECT MEDICAL\n\n"
+                "📍 Toshkent shahri, Yunusobod tumani, "
+                "Nurziyo ko‘chasi, 42\n"
+                "📌 Mo‘ljal: Xasanboy katta halqa yo‘li bo‘yida\n\n"
+                "☎️ Telefon: +998 77 512 30 30"
+            ),
+        }
+    )
+
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
     data = await request.json()
@@ -321,6 +350,19 @@ async def telegram_webhook(request: Request):
         })
 
         chat_history[history_key] = history[-10:]
+
+        location_words = [
+            "lokatsiya", "lokasiya", "lokatsiyani",
+            "manzil", "manzili", "manzilingiz",
+            "qayerda", "qayerdasiz",
+            "joylashuv", "xarita", "geolokatsiya",
+            "location", "адрес", "локация",
+            "геолокация", "где находится"
+        ]
+
+        if any(word in user_text.lower() for word in location_words):
+            send_business_location(chat_id, connection_id)
+            send_business_photo(chat_id, connection_id)
 
         send_business_message(
             chat_id,
