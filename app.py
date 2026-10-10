@@ -49,7 +49,7 @@ def send_telegram_message(chat_id, text):
 
     with urllib.request.urlopen(request, timeout=20) as response:
         return json.loads(response.read().decode("utf-8"))
-        @app.post("/webhook")
+@app.post("/webhook")
 async def telegram_webhook(request: Request):
     data = await request.json()
 
