@@ -367,6 +367,26 @@ async def telegram_webhook(request: Request):
             return {"ok": True}
 
 
+        social_text = user_text.lower()
+
+        if "instagram" in social_text or "insta" in social_text or "инстаграм" in social_text:
+            send_business_message(
+                chat_id,
+                connection_id,
+                "📸 <b>Doktor Dilshod Oripov — Instagram</b>\n\n"
+                "https://www.instagram.com/dr.dilshodoripov/"
+            )
+            return {"ok": True}
+
+        if "telegram" in social_text or "телеграм" in social_text or "tg kanal" in social_text:
+            send_business_message(
+                chat_id,
+                connection_id,
+                "📲 <b>Doktor Dilshod Oripov — Telegram kanali</b>\n\n"
+                "https://t.me/drdilshodoripov"
+            )
+            return {"ok": True}
+
         send_business_message(
             chat_id,
             connection_id,
