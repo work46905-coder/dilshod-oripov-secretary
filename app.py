@@ -15,6 +15,20 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 
 chat_history = {}
 
+VIDEO_LIBRARY = {
+    "buqoq": [
+        "https://t.me/doctordilshodoripov/94",
+        "https://t.me/doctordilshodoripov/87",
+        "https://t.me/doctordilshodoripov/81",
+        "https://t.me/doctordilshodoripov/78",
+        "https://t.me/doctordilshodoripov/76",
+        "https://t.me/doctordilshodoripov/52"
+    ],
+    "allergiya": [
+        "https://t.me/doctordilshodoripov/53"
+    ]
+}
+
 SYSTEM_PROMPT = """
 Siz Doktor Dilshod Oripovning Telegramdagi shaxsiy yozishmalariga yordam beruvchi onlayn yordamchisiz.
 QAT'IY TIBBIY XAVFSIZLIK QOIDALARI:
@@ -269,6 +283,29 @@ def send_business_message(chat_id, connection_id, text):
         )
 
 
+def medical_referral_message():
+    return (
+        "🩺 <b>SOG‘LIG‘INGIZ BIZ UCHUN MUHIM!</b>\n\n"
+        "Murojaatingiz uchun rahmat. 🌿\n\n"
+        "Sizning shikoyatlaringiz, analiz yoki UZI natijalaringiz "
+        "bo‘yicha to‘g‘ri xulosa berish uchun shifokor ko‘rigi zarur.\n\n"
+        "👨‍⚕️ <b>Doktor Dilshod Oripov</b>\n"
+        "🕘 Qabul vaqti: <b>09:00–11:00</b>\n"
+        "💰 Konsultatsiya: <b>150 000 so‘m</b>\n"
+        "☎️ Telefon: <b>+998 77 512 30 30</b>\n\n"
+        "✨ <i>Qabulga yozilish uchun telefon orqali bog‘lanishingiz mumkin.</i>"
+    )
+
+
+  def emergency_referral_message():
+    return (
+        "🚨 <b>SHOSHILINCH TIBBIY YORDAM</b>\n\n"
+        "Siz yozgan holat shoshilinch tibbiy yordam "
+        "talab qilishi mumkin.\n\n"
+        "🚑 <b>Zudlik bilan 103 raqamiga qo'ng'iroq qiling</b> "
+        "yoki eng yaqin shoshilinch yordam bo'limiga murojaat qiling.\n\n"
+        "⚠️ <i>Oddiy shifokor qabulini kutmang.</i>"
+    )
 def send_business_location(chat_id, connection_id):
     telegram_api(
         "sendLocation",
@@ -333,6 +370,71 @@ async def telegram_webhook(request: Request):
     print("BUSINESS MESSAGE RECEIVED:", chat_id, flush=True)
 
     try:
+        emergency_phrases = [
+            "nafas ololmayapman",
+            "nafasim yetmayapti",
+            "nafas olishim qiyin",
+            "hushimdan ketyapman",
+            "hushidan ketdi",
+            "ko'kragim qattiq og'riyapti",
+            "ko‘kragim qattiq og‘riyapti",
+            "qon ketishi to'xtamayapti",
+            "qon ketishi to‘xtamayapti",
+            "yuzim qiyshayib qoldi",
+            "gapira olmay qoldim"
+        ]
+
+        if any(phrase in user_text.lower() for phrase in emergency_phrases):
+            send_business_message(
+                chat_id,
+                connection_id,
+                emergency_referral_message()
+            )
+            return {"ok": True}
+
+        # Doktor videolarini faqat bemor so'raganda yuborish
+        text_lower = user_text.lower()
+
+        video_request_words = [
+            "video", "videosi", "videolari",
+            "videongiz", "videoni", "rolik",
+            "ko'rsam", "ko'rsat", "vidyo"
+        ]
+
+        if any(word in text_lower for word in video_request_words):
+            video_topic = None
+
+            if any(word in text_lower for word in [
+                "buqoq", "qalqonsimon", "zob"
+            ]):
+                video_topic = "buqoq"
+
+            elif any(word in text_lower for word in [
+                "allergiya", "allergik"
+            ]):
+                video_topic = "allergiya"
+
+            if video_topic and VIDEO_LIBRARY.get(video_topic):
+                video_url = VIDEO_LIBRARY[video_topic][0]
+
+                video_answer = (
+                    "🎥 <b>DOKTOR DILSHOD ORIPOV VIDEOSI</b>\n\n"
+                    "👨‍⚕️ Siz so'ragan mavzu bo'yicha "
+                    "doktorning videosi:\n\n"
+                    f"▶️ {video_url}\n\n"
+                    "🩺 <i>Video umumiy ma'lumot uchun. "
+                    "Shaxsiy tashxis va davolash uchun "
+                    "shifokor ko'rigi zarur.</i>"
+                )
+
+                send_business_message(
+                    chat_id,
+                    connection_id,
+                    video_answer
+                )
+                return {"ok": True}
+
+
         history_key = f"{connection_id}:{chat_id}"
 
         history = chat_history.get(history_key, [])
