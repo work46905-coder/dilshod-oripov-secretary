@@ -297,7 +297,7 @@ def medical_referral_message():
     )
 
 
-  def emergency_referral_message():
+def emergency_referral_message():
     return (
         "🚨 <b>SHOSHILINCH TIBBIY YORDAM</b>\n\n"
         "Siz yozgan holat shoshilinch tibbiy yordam "
